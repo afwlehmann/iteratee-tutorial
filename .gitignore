@@ -1,0 +1,14 @@
+.idea
+.idea_modules
+target
+project
+tex/slides.aux
+tex/slides.fdb_latexmk
+tex/slides.fls
+tex/slides.log
+tex/slides.nav
+tex/slides.out
+tex/slides.pdf
+tex/slides.snm
+tex/slides.toc
+tex/slides.vrb
