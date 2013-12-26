@@ -8,6 +8,8 @@ package com.example.iteratee.pure
 
 
 sealed trait Enumerator[From] {
+  self =>
+
   /**
    * Apply this enumerator to the given iteratee, i.e. fold the iteratee over
    * the input stream represented by this enumerator.
@@ -20,6 +22,16 @@ sealed trait Enumerator[From] {
    */
   def run[To](iter: Iteratee[From, To]): To =
     apply(iter).run
+
+  /**
+   * Compose this enumerator with the given enumeratee, i.e. tunnel the elements
+   * of this stream producer through `enumeratee`.
+   */
+  def through[To](enumeratee: Enumeratee[From, To]): Enumerator[To] = new Enumerator[To] {
+    override def apply[R](iter: Iteratee[To, R]): Iteratee[To, R] =
+      (self apply enumeratee(iter)).run
+  }
+
 }
 
 object Enumerator {

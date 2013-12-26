@@ -21,15 +21,6 @@ trait IterateeFunctions {
     Cont(step(0))
   }
 
-  def drop[T](n: Int): Iteratee[T, Unit] = {
-    def step: Input[T] => Iteratee[T, Unit] = {
-      case EOF        => Done((), EOF)
-      case Empty      => Cont(step)
-      case Element(_) => drop(n-1)
-    }
-    if (n <= 0) Done((), Empty) else Cont(step)
-  }
-
   def head[T]: Iteratee[T, T] = {
     def step: Input[T] => Iteratee[T, T] = {
       case EOF        => Error(new NoSuchElementException)
@@ -39,7 +30,17 @@ trait IterateeFunctions {
     Cont(step)
   }
 
-  // This should be implemented as Enumeratee instead.
+  // Use Enumeratee.drop instead.
+  def drop[T](n: Int): Iteratee[T, Unit] = {
+    def step: Input[T] => Iteratee[T, Unit] = {
+      case EOF        => Done((), EOF)
+      case Empty      => Cont(step)
+      case Element(_) => drop(n-1)
+    }
+    if (n <= 0) Done((), Empty) else Cont(step)
+  }
+
+  // Use Enumeratee.filter instead.
   def filter[T](p: T => Boolean): Iteratee[T, Stream[T]] = {
     def step(acc: Stream[T]): Input[T] => Iteratee[T, Stream[T]] = {
       case EOF        => Done(acc, EOF)
@@ -49,7 +50,7 @@ trait IterateeFunctions {
     Cont(step(Stream.empty[T]))
   }
 
-  // This should be implemented as Enumeratee instead.
+  // Use Enumeratee.takeWhile instead.
   def takeWhile[T](p: T => Boolean): Iteratee[T, Stream[T]] = {
     def step(acc: Stream[T]): Input[T] => Iteratee[T, Stream[T]] = {
       case EOF        => Done(acc, EOF)
@@ -59,7 +60,7 @@ trait IterateeFunctions {
     Cont(step(Stream.empty[T]))
   }
 
-  // This should be implemented as Enumeratee instead.
+  // Use Enumeratee.dropWhile instead.
   def dropWhile[T](p: T => Boolean): Iteratee[T, Unit] = {
     def step: Input[T] => Iteratee[T, Unit] = {
       case EOF        => Done((), EOF)
@@ -100,6 +101,18 @@ trait IterateeFunctions {
       }
     }
     Cont(step(Stream.empty[Out]))
+  }
+
+  /**
+   * Folds over input streams (this is basically a foldLeft).
+   */
+  def fold[In, Out](z: Out)(f: (Out, In) => Out): Iteratee[In, Out] = {
+    def step(acc: Out): Input[In] => Iteratee[In, Out] = {
+      case Element(x) => Cont(step(f(acc, x)))
+      case Empty      => Cont(step(acc))
+      case EOF        => Done(acc, EOF)
+    }
+    Cont(step(z))
   }
 
 }

@@ -20,12 +20,7 @@ def putStrLn[T]: Iteratee[T, Unit] = {
 
 Enumerator(List(1,2,3)).run(putStrLn)
 
-
-
 Enumerator("PING".toList).run(putStrLn)
-
-
-
 
 
 // Yields the second element of the input stream (composition!).
@@ -91,3 +86,25 @@ val odds: Iteratee[Int, Stream[Int]] = {
 }
 
 enum.run(odds).toList
+
+
+// Enumeratee's map, apply and transform.
+val sum = Iteratee.fold[Int, Int](0) { case (acc, elt) => acc + elt }
+val em: Enumeratee[String, Int] = Enumeratee map (Integer.parseInt(_))
+
+Enumerator("1","2","3").run(em(sum))
+
+val sumTransformed: Iteratee[String, Int] = em transform sum
+Enumerator("1","2","3") run sumTransformed
+
+
+// Enumerator's through.
+Enumerator("1","2","3") through em run sum
+
+
+// Enumeratee's take, drop, takeWhile, dropWhile and filter.
+Enumerator(1 to 10).run(Enumeratee.take(5) transform sum)
+Enumerator(1 to 10).run(Enumeratee.drop(5) transform sum)
+Enumerator(1 to 10).run(Enumeratee.takeWhile[Int](_ <= 5) transform sum)
+Enumerator(1 to 10).run(Enumeratee.dropWhile[Int](_ <= 5) transform sum)
+Enumerator(1 to 10).run(Enumeratee.filter[Int](_ % 2 == 1) transform sum)

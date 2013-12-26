@@ -35,6 +35,23 @@ sealed trait Iteratee[In, Out] {
    */
   def flatMap[NewOut](f: Out => Iteratee[In, NewOut]): Iteratee[In, NewOut]
 
+  def flatten[InnerOut](implicit in: Out <:< Iteratee[_, InnerOut]): Iteratee[In, InnerOut] = {
+    /*
+     * The implicit parameter constrains the type parameter `Out` and assures that this method can
+     * only be called on iteratees that have an inner iteratee as their result type, or else this
+     * will result in a compile-time failure. This was taken from the play framework.
+     */
+    this.flatMap { r => in(r) match {
+      case Done(result, _) => Done(result, Empty)
+      case Cont(k)         => k(EOF) match {
+        case Done(result, _) => Done(result, EOF)
+        case Cont(_)         => Error(new RuntimeException("Diverging inner iteratee!"))
+        case Error(t)        => Error(t)
+      }
+      case Error(t)        => Error(t)
+    }}
+  }
+
 }
 
 object Iteratee extends IterateeFunctions {

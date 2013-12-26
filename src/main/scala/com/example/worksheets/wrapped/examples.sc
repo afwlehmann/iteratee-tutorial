@@ -20,14 +20,7 @@ def putStrLn[T]: Iteratee[T, Unit] = {
 
 Enumerator(List(1,2,3)).run(putStrLn)
 
-
-
-
 Enumerator("PING".toList).run(putStrLn)
-
-
-
-
 
 
 // Yields the second element of the input stream (composition!).
@@ -56,9 +49,7 @@ def alternates[T] = repeat   { drop1Keep1[T] }
 
 val enum: Enumerator[Int] = Enumerator(1 to 10)
 
-
 enum.run(fivePairs)
-
 
 enum.run(alternates) map (_.toList)
 
@@ -68,7 +59,6 @@ val finalIter = for {
   iter1 <- Enumerator("Hello ".toList)(length)
   iter2 <- Enumerator("world!".toList)(iter1)
 } yield iter2
-
 
 finalIter flatMap (_.run)
 
@@ -92,7 +82,5 @@ val odds: Iteratee[Int, Stream[Int]] = {
   )
   step(Stream.empty)
 }
-
-
 
 enum.run(odds) map (_.toList)
